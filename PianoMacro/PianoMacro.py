@@ -9,55 +9,64 @@ print("Paste your piano keys into the SheetMusic.txt file.")
 print("Keys will be played in 5 seconds.")
 time.sleep(5)
 
-file = open("PianoMacro\SheetMusic.txt", "r")
+def PianoMacro():
+    file = open("PianoMacro\SheetMusic.txt", "r")
 
-inBrackets = False
-brackets = ''
+    inBrackets = False
+    brackets = ''
 
-for line in file:
-    line = line.strip()
+    for line in file:
+        line = line.strip()
 
-    if line == "":
-        time.sleep(0.5 * tempoModifier)
-        continue
-    for char in line:
-        if inBrackets and char != ']':
-            brackets += char
+        if line == "":
+            time.sleep(0.5 * tempoModifier)
             continue
 
-        elif char == ' ':
-            time.sleep(0.25 * tempoModifier)
-        elif char == '|':
-            time.sleep(0.5 * tempoModifier)
+        for char in line:
+            # Adds any key grouping notes to a string to be played together
+            if inBrackets and char != ']':
+                brackets += char
+                continue
 
-        elif char == '[':
-            inBrackets = True
-            brackets = ''
-        elif char == ']':
-            inBrackets = False
-            keyGrouping = ''
+            # Various levels of spacing (rests) between notes
+            elif char == ' ':
+                time.sleep(0.25 * tempoModifier)
+            elif char == '|':
+                time.sleep(0.5 * tempoModifier)
 
-            for key in range(len(brackets)):
-                if  key == len(brackets) - 1 or (key <= len(brackets) - 2 and brackets[key + 1] == ' '):
-                    keyGrouping += brackets[key]
-                    #print(keyGrouping)
-                    keyboard.press(keyGrouping)
-                    time.sleep(0.1 * tempoModifier)
-                    keyboard.release(keyGrouping)
-                    keyGrouping = ''
-                elif brackets[key] == ' ':
-                    time.sleep(0.15 * tempoModifier)
-                else:
-                    keyGrouping += brackets[key] + "+"
-            time.sleep(0.15 * tempoModifier)
-        else:
-            if char.isupper():
-                keyboard.press("shift" + "+" + char)
-                time.sleep(0.1 * tempoModifier)
-                keyboard.release("shift" + "+" + char)
+            #  Bracket open - Start of a key grouping
+            elif char == '[':
+                inBrackets = True
+                brackets = ''
+            # Bracket close - End of a key grouping
+            elif char == ']':
+                inBrackets = False
+                keyGrouping = ''
+
+                # Handles any key groupings (notes in brackets)
+                for key in range(len(brackets)):
+                    if  key == len(brackets) - 1 or (key <= len(brackets) - 2 and brackets[key + 1] == ' '):
+                        keyGrouping += brackets[key]
+                        #print(keyGrouping)
+                        keyboard.press(keyGrouping)
+                        time.sleep(0.1 * tempoModifier)
+                        keyboard.release(keyGrouping)
+                        keyGrouping = ''
+                    elif brackets[key] == ' ':
+                        time.sleep(0.15 * tempoModifier)
+                    else:
+                        # Adds notes delimited by  a '+' to play simultaneously
+                        keyGrouping += brackets[key] + "+"
+                time.sleep(0.15 * tempoModifier)
             else:
-                keyboard.press(char)
-                time.sleep(0.1 * tempoModifier)
-                keyboard.release(char)
-            time.sleep(0.15 * tempoModifier)
-    time.sleep(0.15 * tempoModifier)
+                # Sharp/flat notes (capital letters) - requires shift key to be held
+                if char.isupper():
+                    keyboard.press("shift" + "+" + char)
+                    time.sleep(0.1 * tempoModifier)
+                    keyboard.release("shift" + "+" + char)
+                else:
+                    keyboard.press(char)
+                    time.sleep(0.1 * tempoModifier)
+                    keyboard.release(char)
+                time.sleep(0.15 * tempoModifier)
+        time.sleep(0.15 * tempoModifier)
